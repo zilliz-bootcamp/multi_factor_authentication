@@ -1,78 +1,78 @@
-# 生物多因子认证系统
+# Biological multi-factor authentication system
 
-本文介绍的生物多因子认证系统利用 [InsightFace](https://github.com/deepinsight/insightface) 提取人脸特征，[Deep Speaker](https://github.com/philipperemy/deep-speaker) 提取声纹特征，然后在 [Milvus](https://milvus.io/) 中做混合认证。
+The biological multi-factor authentication system presented in this paper uses [InsightFace](https://github.com/deepinsight/insightface) to extract the voice features and then does hybrid authentication in [Milvus](https://milvus.io/).
 
-## 前提环境
+## Preparation
 
 - #### [Milvus 0.10.0](https://milvus.io/cn/docs/v0.10.0/install_milvus.md)
 
 - #### postgres
 
-## 系统搭建
+## Build System
 
-在搭建生物多因子认证系统前，请先**启动 Milvus 服务**，下面将介绍使用 Docker 部署系统和构建镜像部署两种方法：
+Before setting up a biological multi-factor authentication system, **start the Milvus service** and deploy the system and build an image using Docker as described below.
 
-### 使用 Docker 部署
+### Deploy with Docker
 
-- #### 启动 MFA-demo
+- #### Run MFA-demo
 
 ```bash
 $ docker run -td -p 5003:5000 -e API_URL=https://192.168.1.85:5003 -e "MILVUS_HOST=192.168.1.85" -e "MILVUS_PORT=19530" -e "PG_HOST=192.168.1.85" -e "PG_PORT=5432" milvusbootcamp/mfa-demo:0.2.0
 ```
 
-上述启动命令相关参数说明：
+Description of parameters related to the above start command.
 
-| 参数                                 | 说明                                                         |
+| Parameter                            | Description                                                  |
 | ------------------------------------ | ------------------------------------------------------------ |
-| -p 5003:5000                         | -p 表示宿主机和 image 之间的端口映射                         |
-| -e API_URL=https://192.168.1.85:5003 | -e 表示宿主机和 image 之间的系统参数映射 <br />请将 `192.168.1.85` 修改为当前启动 mfa-demo 的服务器 IP 地址，5003是映射到宿主机的端口 |
-| -e "MILVUS_HOST=192.168.1.85"        | 请修改`192.168.1.85`为启动 Milvus docker 的服务器 IP 地址    |
-| -e "MILVUS_PORT=19530"               | 请修改`19530`为启动 Milvus docker 的服务器端口号             |
-| -e "PG_HOST=192.168.1.85"            | 请修改`192.168.1.85`为启动 Postgres 的服务器 IP 地址         |
-| -e "PG_PORT=5432"                    | 请修改`5432`为启动 Postgres 的服务器端口                     |
+| -p 5003:5000                         | -p represents the port mapping between the host and the image |
+| -e API_URL=https://192.168.1.85:5003 | -e represents the system parameter mapping between the host and the image <br />Change `192.168.1.85` to the IP address of the server where MFA-demo is currently started, and 5003 is the port mapped to the host. |
+| -e "MILVUS_HOST=192.168.1.85"        | Please change `192.168.1.85` to the IP address of the server where Milvus docker starts. |
+| -e "MILVUS_PORT=19530"               | Please change `19530` to the server port number to start Milvus docker. |
+| -e "PG_HOST=192.168.1.85"            | Please change `192.168.1.85` to the IP address of the server where Postgres is started. |
+| -e "PG_PORT=5432"                    | Please change `5432` to the server port for starting Postgres. |
 
-### 构建镜像部署
+### Build mirror deployments
 
 ```bash
-# clone mfa 的代码
+# Pull mfa code 
 $ git clone https://github.com/milvus-io/bootcamp.git
 $ cd bootcamp/solutions/MFA/webserver
-# 构建 mfa-demo 镜像
+# Build mfa-demo image
 $ docker build -t mfa-demo:0.2.0 .
-# 启动 mfa-demo, 启动命令参考"使用 Docker 部署"
+# Run mfa-demo,for startup commands, see "Deploying with Docker".
 $ docker run -td -p 5003:5000 -e API_URL=https://192.168.1.85:5003 -e "MILVUS_HOST=192.168.1.85" -e "MILVUS_PORT=19533" -e "PG_HOST=192.168.1.85" -e "PG_PORT=5432" mfa-demo:0.2.0
 ```
 
-> 注意：在构建镜像时需下载 face_embedding 模型，下载链接：https://pan.baidu.com/s/18EWcP5YJmeDrY1A8_k09pw , 提取码：82ht；下载 deep speaker 模型，下载链接：https://pan.baidu.com/s/16_moPcoUGah1dqdDtEQreQ, 提取码：11vv。
+> Note：To build the image, you need to download the face_embedding model, download link: [https://pan.baidu.com/s/18EWcP5YJmeDrY1A8_k09pw](https://pan.baidu.com/s/18EWcP5YJmeDrY1A8_k09pw) , Extraction code: 82ht; to download the deep speaker model, download link: [https://pan. baidu.com/s/16_moPcoUGah1dqdDtEQreQ](https://pan. baidu.com/s/16_moPcoUGah1dqdDtEQreQ), Retrieval Code: 11vv.
 >
-> 下载后请解压 mfa-models，并将 models 文件夹移动到 bootcamp/solutions/MFA/webserver/face-embedding 下；将ResCNN_triplet_training_checkpoint_265.h5移动到 bootcamp/solutions/MFA/webserver/src/deep_speaker/checkpoints。
+> After Downloading, unzip mfa-models，and move the `models` folder to `bootcamp/solutions/MFA/webserver/face-embedding` ; move `ResCNN_triplet_training_checkpoint_265.h5` to `bootcamp/solutions/MFA/webserver/src/deep_speaker/checkpoints`.
 
 
 
-## 系统使用
+## System Usage
 
-在手机端或者客户端的浏览器（建议谷歌浏览器）中输入`https://192.168.1.85:5003`(启动 MFA-demo 指定的 API_URL)，就可以开始进行生物多因子认证了。
+Type `https://192.168.1.85:5003` (the API_URL specified by the launch MFA-demo) into your mobile or client browser (Google Chrome is recommended) to start the biological multi-factor authentication.
 
-- #### 系统录入
+- #### New User Registration
 
-  首先点击 `New User` ，将在系统中录入信息。
+  First, click `New User` to enter the information in the system.
 
 ![](./pic/new_user.png)
 
-​		然后在框里面填下个人昵称,，比如 `Milvus`，然后点击 `Click to Record` 将会录视频，如果浏览器弹出需要**访问摄像头和话筒**，请选择同意，接下来就在系统中录制 5 秒左右的视频。
+​		Then fill in the box with your nickname, e.g. `Milvus`, and click on `Click to Record` to record the video, if the browser pops up and you need **access to the camera and microphone**, select Yes, then you will record about 5 seconds of video in the system.
 
 ![](./pic/record.png)
 
-​		系统录入成功后将会出现以下界面：
+​		The following GUI will appear after a successful system entry.
 
 ![](./pic/record_success.png)
 
-- #### 系统认证
+- #### System authentication
 
-  点击 `Click To Iddentify` 将进行验证，同样在系统中录制 5s 左右的视频。
+  Clicking `Click To Identify` will authenticate and also record the video in the system for about 5s.
 
 ![](./pic/indentify.png)
 
-​		系统认证成功将会出现以下界面，图片将会显示验证人的人脸，这里替换了 Milvus logo：
+​		Successful system authentication is shown below, with the image showing the verifier's face. The Milvus logo has been replaced here.
 
 ![](./pic/indentify_success.png)
