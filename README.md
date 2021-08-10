@@ -1,3 +1,5 @@
+:exclamation::exclamation: **This repo will no longer be maintained, please visit https://github.com/milvus-io/bootcamp** :exclamation: :exclamation:
+
 # Biological multi-factor authentication system
 
 The biological multi-factor authentication system presented in this paper uses [InsightFace](https://github.com/deepinsight/insightface) to extract the voice features and then does hybrid authentication in [Milvus](https://milvus.io/).
